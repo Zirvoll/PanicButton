@@ -4,7 +4,10 @@ author 'Phantom'
 description 'A panic button resource for lb tablet'
 version '1.0.0'
 
-server_script 'server/main.lua'
+server_scripts {
+    'server/*.lua',
+    'server/bridge/*.lua',
+}
 client_script 'client/main.lua'
 
 lua54 'yes'
