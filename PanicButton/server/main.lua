@@ -1,3 +1,7 @@
+local policeJobs = { "police", "sast", "sheriff", "lspd" }
+local ambulanceJobs = { "ambulance", "ems" }
+
+
 RegisterNetEvent("HapticPanic:TriggerButton", function()
     local src = source
 
@@ -7,6 +11,24 @@ RegisterNetEvent("HapticPanic:TriggerButton", function()
 
     local ped = GetPlayerPed(src)
     local Player = GetPlayerInfo(src)
+
+    local jobs = {}
+    if ArrayContains(policeJobs, Player.job) then
+        table.insert(job, "police")
+    end
+    if ArrayContains(ambulanceJobs, Player.job) then
+        table.insert(job, "ambulance")
+    end
+
+    -- Exit if no job was found
+    if #jobs < 1 then
+        TriggerClientEvent('ox_lib:notify', src, {
+            title = "Access Denied",
+            description = "You are not authorized to use the panic button",
+            type = 'error',
+        })
+        return
+    end
 
     local x, y, z = table.unpack(GetEntityCoords(ped))
     TriggerClientEvent("InteractSound_CL:PlayWithinDistance", -1, src, 30.0, "panic", 0.2)
@@ -25,16 +47,16 @@ RegisterNetEvent("HapticPanic:TriggerButton", function()
         fields      = { { icon = "fa-solid fa-shield-halved", label = "Department", value = dept:upper() } },
     }
 
-    if dept == "police" or dept == "sast" or dept == "sheriff" or dept == "lspd" then
-        dispatch.job = "police"
-    elseif dept == "ambulance" or dept == "ems" then
-        dispatch.job = "ambulance"
-    end
+    for i = 1, #jobs do
+        dispatch.job = jobs[i]
 
-    local ok, err = pcall(function()
-        exports["lb-tablet"]:AddDispatch(dispatch)
-    end)
-    if not ok then
-        print(("[PanicButton] lb-tablet AddDispatch failed: %s"):format(err or "unknown error"))
+        local ok, err = pcall(function()
+            exports["lb-tablet"]:AddDispatch(dispatch)
+        end)
+        
+        if not ok then
+            print(("[PanicButton] lb-tablet AddDispatch failed for job: %s"):format(jobs[i]))
+            print(("[PanicButton] Error: %s"):format(err or "unknown error"))
+        end
     end
 end)
